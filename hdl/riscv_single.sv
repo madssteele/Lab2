@@ -105,14 +105,14 @@ module controller (input  logic [6:0] op,
 		   output logic       RegWrite, Jump,
 		   output logic [1:0] ImmSrc,
 		   output logic [2:0] ALUControl);
-       output logic       memStrobe;
+       
    
    logic [1:0] 			      ALUOp;
    logic 			      Branch;
    logic            PCSrc,PCSrc1,PCSrc2,PCSrc3;
 
    maindec md (op, ResultSrc, MemWrite, Branch,
-	       ALUSrc, RegWrite, Jump, ImmSrc, ALUOp, memStrobe);
+	       ALUSrc, RegWrite, Jump, ImmSrc, ALUOp);
    aludec ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
    assign PCSrc = Branch & (Zero ^ funct3[0]) | Jump; //beq
    assign PCSrc1 = Branch ^ (Zero ^ funct3[0]) | Jump; //bne
@@ -144,7 +144,7 @@ module maindec (input  logic [6:0] op,
 		output logic 	   RegWrite, Jump,
 		output logic [1:0] ImmSrc,
 		output logic [1:0] ALUOp);
-    output logic       memStrobe;
+    
    
    logic [10:0] 		   controls;
    
