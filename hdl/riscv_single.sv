@@ -109,13 +109,33 @@ module controller (input  logic [6:0] op,
    
    logic [1:0] 			      ALUOp;
    logic 			      Branch;
-   
+   logic            PCSrc,PCSrc1,PCSrc2,PCSrc3;
+
    maindec md (op, ResultSrc, MemWrite, Branch,
 	       ALUSrc, RegWrite, Jump, ImmSrc, ALUOp, memStrobe);
    aludec ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
-   assign PCSrc = Branch & (Zero ^ funct3[0]) | Jump;
-   
+   assign PCSrc = Branch & (Zero ^ funct3[0]) | Jump; //beq
+   assign PCSrc1 = Branch ^ (Zero ^ funct3[0]) | Jump; //bne
+   assign PCSrc2 = Branch < (Zero ^ funct3[0]) | Jump; //blt
+   assign PCSrc3 = Branch >= (Zero ^ funct3[0]) | Jump; //bge
+   mux_branch MB(PCSrc1,PCSrc2,PCSrr3,funct3,PCSrc);
+
 endmodule // controller
+
+module mux_branch #(parameter WIDTH = 8)
+  (input logic [WIDTH-1:0] d0, d1,d2,d3,
+    input logic 	     s,
+    output logic [WIDTH-1:0] y);
+   
+  always_comb
+    case(s)
+      3'b000: y = d0;
+      3'b001: y = d1;
+      3'b100: y = d2;
+      3'b101: y = d3;
+    endcase 
+   
+endmodule // mux_branch
 
 module maindec (input  logic [6:0] op,
 		output logic [1:0] ResultSrc,
@@ -315,10 +335,10 @@ module alu (input  logic [31:0] a, b,
    logic 		       v;              // overflow
    logic 		       isAddSub;       // true when is add or subtract operation
 
-   assign condinvb = alucontrol[0] ? ~b : b;
-   assign sum = a + condinvb + alucontrol[0];
+   assign condinvb = alucontrol[0] ? ~b : b; //determines if b is neg or pos
+   assign sum = a + condinvb + alucontrol[0]; // creates sum operation
    assign isAddSub = ~alucontrol[2] & ~alucontrol[1] |
-                     ~alucontrol[1] & alucontrol[0];   
+                     ~alucontrol[1] & alucontrol[0];   //is true if it is an add or subtract
 
    always_comb
      case (alucontrol)
