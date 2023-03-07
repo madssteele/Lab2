@@ -24,6 +24,30 @@
 //   lw	          0000011   010       immediate
 //   sw           0100011   010       immediate
 //   jal          1101111   immediate immediate
+//   auipc
+//   bge
+//   bgeu
+//   blt
+//   bltu
+//   bne
+//   jalr
+//   lb
+//   lbu
+//   lh
+//   lhu
+//   lui
+//   sb
+//   sh
+//   sll
+//   slli
+//   sltiu
+//   sltu
+//   sra
+//   srai
+//   srl
+//   srli
+//   xor
+//   xori
 
 module testbench();
 
@@ -123,7 +147,7 @@ module controller (input  logic [6:0] op,
 endmodule // controller
 
 //module mux_branch #(parameter WIDTH = 8)
-  //(input logic [WIDTH-1:0] d0, d1,d2,d3,
+  //(input logic [WIDTH-1:0] d0, d1, d2, d3,
   //  input logic 	     s,
   //  output logic [WIDTH-1:0] y);
    
@@ -160,6 +184,7 @@ module maindec (input  logic [6:0] op,
        7'b1100011: controls = 11'b0_10_0_0_00_1_01_0; // beq
        7'b0010011: controls = 11'b1_00_1_0_00_0_10_0; // I–type ALU
        7'b1101111: controls = 11'b1_11_0_0_10_0_00_1; // jal
+       //7'b0110111: controls = 11'b1_11_0_0_10_0_00_1; // lui
        default: controls = 11'bx_xx_x_x_xx_x_xx_x; // ???
      endcase // case (op)
    
@@ -186,6 +211,10 @@ module aludec (input  logic       opb5,
 		  3'b010: ALUControl = 3'b101; // slt, slti
 		  3'b110: ALUControl = 3'b011; // or, ori
 		  3'b111: ALUControl = 3'b010; // and, andi
+      //3'b011: ALUControl = 4'b1100; // xor
+      //3'b001: ALUControl = 4'b1110; // SLL
+      //3'b100: ALUControl = 4'b0111; // SRA comeback
+      //3'b101: ALUControl = 4'b0011; // SRL
 		  default: ALUControl = 3'bxxx; // ???
 		endcase // case (funct3)       
      endcase // case (ALUOp)
@@ -291,6 +320,18 @@ module mux3 #(parameter WIDTH = 8)
    
 endmodule // mux3
 
+module comparators #(parameter WIDTH = 8)
+    (input logic [WIDTH-1:0] d0, d1,
+    output logic [WIDTH-1:0] eq, neq, lt, lte, gt, gte);
+    assign eq = (d0 == d1);
+    assign neq = (d0 != d1);
+    assign lt = (d0 < d1);
+    assign lte = (d0 <= d1);
+    assign gt = (d0 > d1);
+    assign gte = (d0 >= d1);
+
+endmodule
+
 module top (input  logic        clk, reset,
 	    output logic [31:0] WriteData, DataAdr,
 	    output logic 	MemWrite);
@@ -346,7 +387,11 @@ module alu (input  logic [31:0] a, b,
        3'b001:  result = sum;         // subtract
        3'b010:  result = a & b;       // and
        3'b011:  result = a | b;       // or
-       3'b101:  result = sum[31] ^ v; // slt       
+       3'b101:  result = sum[31] ^ v; // slt 
+       //4'b1100:  result = a ^ b; // xor     
+      // 4'b1110:  result = a << b; // sll
+      // 4'b0111:  result = a >> b; // srl
+      // 4'b0011:  result = a >> b; // sra       
        default: result = 32'bx;
      endcase
 
